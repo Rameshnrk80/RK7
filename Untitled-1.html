@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stone Paper Scissors</title>
+  <style>
+    :root {
+      --bg-light: rgba(255, 255, 255, 0.6);
+      --bg-dark: rgba(0, 0, 0, 0.8);
+      --text-light: #000;
+      --text-dark: #fff;
+      --button-bg: #4a90e2;
+      --button-hover: #357ABD;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://static.vecteezy.com/system/resources/thumbnails/000/692/257/small_2x/colorful-rock-paper-scissors-vector-pattern.png') center/cover no-repeat;
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark {
+      color: var(--text-dark);
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-light);
+      z-index: 0;
+      transition: background 0.3s ease;
+    }
+
+    body.dark::before {
+      background: var(--bg-dark);
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      animation: fadeIn 2s ease;
+      color: inherit;
+      text-shadow: 0 0 2px white;
+    }
+
+    .dark .container {
+      background: rgba(0, 0, 0, 0.6);
+      text-shadow: 0 0 2px black;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    button {
+      background: var(--button-bg);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    .characters {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .character {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 24px;
+      flex: 1 1 45%;
+      margin-bottom: 20px;
+    }
+
+    .move {
+      font-size: 36px;
+      margin-top: 10px;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    .timer {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🪨 📄 ✂️ Stone Paper Scissors</h1>
+    <p>Choose your move:</p>
+    <button onclick="play('stone')">🪨 Stone</button>
+    <button onclick="play('paper')">📄 Paper</button>
+    <button onclick="play('scissors')">✂️ Scissors</button>
+
+    <div class="characters">
+      <div class="character">
+        <div>👤 You</div>
+        <div class="move" id="player-move">❓</div>
+      </div>
+      <div class="character">
+        <div>🤖 Computer</div>
+        <div class="move" id="computer-move">❓</div>
+      </div>
+    </div>
+
+    <h2 id="result"></h2>
+    <p>👤 You: <span id="player-score">0</span> | 🤖 Computer: <span id="computer-score">0</span></p>
+
+    <div class="controls">
+      <button onclick="resetGame()">🔄 Reset</button>
+      <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+      <button onclick="startRoundTimer()">⏱️ Start Round</button>
+    </div>
+
+    <div class="timer" id="round-timer"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const options = ['stone', 'paper', 'scissors'];
+    const emojis = { stone: '🪨', paper: '📄', scissors: '✂️' };
+    let playerScore = 0;
+    let computerScore = 0;
+    let roundTimer;
+
+    function play(playerChoice) {
+      clearTimeout(roundTimer);
+      document.getElementById('round-timer').textContent = '';
+
+      const computerChoice = options[Math.floor(Math.random() * 3)];
+      let result = '';
+
+      document.getElementById('player-move').textContent = emojis[playerChoice];
+      document.getElementById('computer-move').textContent = emojis[computerChoice];
+
+      if (playerChoice === computerChoice) {
+        result = "It's a Draw! 🤝";
+      } else if (
+        (playerChoice === 'stone' && computerChoice === 'scissors') ||
+        (playerChoice === 'paper' && computerChoice === 'stone') ||
+        (playerChoice === 'scissors' && computerChoice === 'paper')
+      ) {
+        result = "You Win! 🎉";
+        playerScore++;
+        launchConfetti();
+      } else {
+        result = "You Lose! 😢";
+        computerScore++;
+      }
+
+      document.getElementById('result').textContent = result;
+      document.getElementById('player-score').textContent = playerScore;
+      document.getElementById('computer-score').textContent = computerScore;
+    }
+
+    function launchConfetti() {
+      const defaults = {
+        spread: 360,
+        ticks: 50,
+        gravity: 0,
+        decay: 0.94,
+        startVelocity: 30,
+        colors: ['#FFE400', '#FFBD00', '#E89400', '#FFCA6C', '#FDFFB8']
+      };
+
+      confetti({ ...defaults, particleCount: 40, scalar: 1.2, shapes: ['star'] });
+      confetti({ ...defaults, particleCount: 10, scalar: 0.75, shapes: ['circle'] });
+    }
+
+    function resetGame() {
+      playerScore = 0;
+      computerScore = 0;
+      document.getElementById('player-score').textContent = '0';
+      document.getElementById('computer-score').textContent = '0';
+      document.getElementById('result').textContent = '';
+      document.getElementById('player-move').textContent = '❓';
+      document.getElementById('computer-move').textContent = '❓';
+      document.getElementById('round-timer').textContent = '';
+      clearTimeout(roundTimer);
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    function startRoundTimer() {
+      let timeLeft = 5;
+      document.getElementById('round-timer').textContent = `⏳ Time left: ${timeLeft}s`;
+
+      roundTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(roundTimer);
+          document.getElementById('round-timer').textContent = '⏱️ Time\'s up!';
+        } else {
+          document.getElementById('round-timer').textContent = `⏳ Time left: ${timeLeft}s`;
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
